@@ -7,12 +7,15 @@
 -- License: MIT/X, see http://sputnik.freewisdom.org/en/License
 -----------------------------------------------------------------------------
 
-module(..., package.seeall)
+local M = {
+  -- a constant
+  SKIP_SEPARATOR = true,
 
-SKIP_SEPARATOR = true  -- a constant
-
-IN   = "in"; OUT  = "out"; SAME = "same"  -- token statuses
-
+  -- token statuses
+  IN   = "in",
+  OUT  = "out",
+  SAME = "same"
+}
 -----------------------------------------------------------------------------
 -- Split a string into tokens.  (Adapted from Gavin Kistner's split on
 -- http://lua-users.org/wiki/SplitJoin.
@@ -23,7 +26,7 @@ IN   = "in"; OUT  = "out"; SAME = "same"  -- token statuses
 -- @param skip_separator [optional] don't include the sepator in the results.     
 -- @return               A list of tokens.
 -----------------------------------------------------------------------------
-function split(text, separator, skip_separator)
+function M.split(text, separator, skip_separator)
    separator = separator or "%s+"
    local parts = {}  
    local start = 1
@@ -53,7 +56,7 @@ end
 -- @param t2             the second string.
 -- @return               the least common subsequence as a matrix.
 -----------------------------------------------------------------------------
-function quick_LCS(t1, t2)
+function M.quick_LCS(t1, t2)
    local m = #t1
    local n = #t2
 
@@ -98,7 +101,7 @@ end
 -- @param text           The string to be escaped.
 -- @return               Escaped string.
 -----------------------------------------------------------------------------
-function escape_html(text)
+function M.escape_html(text)
    text = text:gsub("&", "&amp;"):gsub(">","&gt;"):gsub("<","&lt;")
    text = text:gsub("\"", "&quot;")
    return text
@@ -111,11 +114,11 @@ end
 -- @param tokens         a table of {token, status} pairs.
 -- @return               an HTML string.
 -----------------------------------------------------------------------------
-function format_as_html(tokens)
+function M.format_as_html(tokens)
    local diff_buffer = ""
    local token, status
    for i, token_record in ipairs(tokens) do
-      token = escape_html(token_record[1])
+      token = M.escape_html(token_record[1])
       status = token_record[2]
       if status == "in" then
          diff_buffer = diff_buffer.."<ins>"..token.."</ins>"
@@ -138,9 +141,9 @@ end
 --                       white space).
 -- @return               A list of annotated tokens.
 -----------------------------------------------------------------------------
-function diff(old, new, separator)
+function M.diff(old, new, separator)
    assert(old); assert(new)
-   new = split(new, separator); old = split(old, separator)
+   new = M.split(new, separator); old = M.split(old, separator)
 
    -- First, compare the beginnings and ends of strings to remove the common
    -- prefix and suffix.  Chances are, there is only a small number of tokens
@@ -164,9 +167,9 @@ function diff(old, new, separator)
    -- in this table functions to handle different events.
    local rev_diff = {
       put  = function(self, token, type) table.insert(self, {token,type}) end,
-      ins  = function(self, token) self:put(token, IN) end,
-      del  = function(self, token) self:put(token, OUT) end,
-      same = function(self, token) if token then self:put(token, SAME) end end,
+      ins  = function(self, token) self:put(token, M.IN) end,
+      del  = function(self, token) self:put(token, M.OUT) end,
+      same = function(self, token) if token then self:put(token, M.SAME) end end,
    }
 
    -- Put the suffix as the first token (we are storing the diff in the
@@ -195,7 +198,7 @@ function diff(old, new, separator)
       end
    end
    -- Then call it.
-   get_diff(quick_LCS(old, new), old, new, #old + 1, #new + 1)
+   get_diff(M.quick_LCS(old, new), old, new, #old + 1, #new + 1)
 
    -- Put the prefix in at the end
    rev_diff:same(prefix)
@@ -206,9 +209,9 @@ function diff(old, new, separator)
    for i = #rev_diff, 1, -1 do
       table.insert(diff, rev_diff[i])
    end
-   diff.to_html = format_as_html
+   diff.to_html = M.format_as_html
    return diff
 end
 
-
+return M
 
