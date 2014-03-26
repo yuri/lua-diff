@@ -7,6 +7,8 @@
 -- License: MIT/X, see http://sputnik.freewisdom.org/en/License
 -----------------------------------------------------------------------------
 
+local tinsert = table.insert
+
 local M = {
   -- a constant
   SKIP_SEPARATOR = true,
@@ -131,6 +133,12 @@ function M.format_as_html(tokens)
    return diff_buffer
 end
 
+local diff_mt = {
+  __index = {
+    format_as_html = M.format_as_html
+  }
+}
+
 -----------------------------------------------------------------------------
 -- Returns a diff of two strings as a list of pairs, where the first value
 -- represents a token and the second the token's status ("same", "in", "out").
@@ -209,9 +217,10 @@ function M.diff(old, new, separator)
    for i = #rev_diff, 1, -1 do
       table.insert(diff, rev_diff[i])
    end
-   diff.to_html = M.format_as_html
-   return diff
+   return setmetatable(diff, diff_mt)
 end
 
-return M
-
+local mt = {
+  __call = function (_, o, n, s) return M.diff(o, n, s) end
+}
+return setmetatable(M, mt)
