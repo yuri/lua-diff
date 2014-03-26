@@ -179,7 +179,8 @@ end
 local diff_mt = {
   __index = {
     format_as_html = M.format_as_html,
-    format_as_text = M.format_as_text
+    format_as_text = M.format_as_text,
+    to_html = M.format_as_html
   }
 }
 
@@ -267,4 +268,5 @@ end
 local mt = {
   __call = function (_, o, n, s) return M.diff(o, n, s) end
 }
-return setmetatable(M, mt)
+setmetatable(M, mt)
+return M
