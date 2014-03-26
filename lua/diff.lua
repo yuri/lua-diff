@@ -133,9 +133,53 @@ function M.format_as_html(tokens)
    return diff_buffer
 end
 
+local display = {}
+display[M.IN]  = function (s) return string.format('+{%s}', s) end
+display[M.OUT] = function (s) return string.format('-{%s}', s) end
+
+-----------------------------------------------------------------------------
+-- Formats an inline diff as text, using +{} and -{} format.
+--
+-- @param tokens         a table of {token, status} pairs.
+-- @return               a string.
+-----------------------------------------------------------------------------
+function M.format_as_text(tokens)
+
+  -- Storage for final result
+  local buffer = {}
+
+  -- The idea is make continuous looking changes.
+  --
+  -- So we will gather token strings in a sub-buffer as long as token status
+  -- does not change. Once token status changes, sub-buffer is flushed in main
+  -- buffer calling text formatting function once.
+  local prevstatus
+  local subbuffer = {}
+  for _, token in ipairs(tokens) do
+    local str, status = unpack( token )
+    if status == prevstatus then
+      tinsert(subbuffer, str)
+    else
+      -- Flush sub-buffer
+      local bufferstring = table.concat(subbuffer)
+      local f = display[prevstatus]
+      tinsert(buffer,f and f(bufferstring) or bufferstring)
+      -- Initialize sub-buffer
+      subbuffer = { str }
+    end
+    prevstatus = status
+  end
+  -- Final flush
+  local bufferstring = table.concat(subbuffer)
+  local f = display[prevstatus]
+  tinsert(buffer, f and f(bufferstring) or bufferstring)
+  return table.concat(buffer)
+end
+
 local diff_mt = {
   __index = {
-    format_as_html = M.format_as_html
+    format_as_html = M.format_as_html,
+    format_as_text = M.format_as_text
   }
 }
 
