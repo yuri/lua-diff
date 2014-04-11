@@ -1,6 +1,6 @@
 
 
-require"diff"
+local diff = require"diff"
 
 
 
