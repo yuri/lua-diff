@@ -3,15 +3,18 @@
 --
 -- (c) 2007, 2008  Yuri Takhteyev (yuri@freewisdom.org)
 -- (c) 2007 Hisham Muhammad
+-- (c) 2014 T s T (tst2005 gmail com) fixed for lua5.2
 --
 -- License: MIT/X, see http://sputnik.freewisdom.org/en/License
 -----------------------------------------------------------------------------
 
-module(..., package.seeall)
+--define a module without call of module() function
+local _M = {}
 
-SKIP_SEPARATOR = true  -- a constant
+_M.SKIP_SEPARATOR = true  -- a constant
+-- SKIP_SEPARATOR not-used?
 
-IN   = "in"; OUT  = "out"; SAME = "same"  -- token statuses
+_M.IN   = "in"; _M.OUT  = "out"; _M.SAME = "same"  -- token statuses
 
 -----------------------------------------------------------------------------
 -- Split a string into tokens.  (Adapted from Gavin Kistner's split on
@@ -23,6 +26,7 @@ IN   = "in"; OUT  = "out"; SAME = "same"  -- token statuses
 -- @param skip_separator [optional] don't include the sepator in the results.     
 -- @return               A list of tokens.
 -----------------------------------------------------------------------------
+local
 function split(text, separator, skip_separator)
    separator = separator or "%s+"
    local parts = {}  
@@ -53,6 +57,7 @@ end
 -- @param t2             the second string.
 -- @return               the least common subsequence as a matrix.
 -----------------------------------------------------------------------------
+local
 function quick_LCS(t1, t2)
    local m = #t1
    local n = #t2
@@ -98,6 +103,7 @@ end
 -- @param text           The string to be escaped.
 -- @return               Escaped string.
 -----------------------------------------------------------------------------
+local
 function escape_html(text)
    text = text:gsub("&", "&amp;"):gsub(">","&gt;"):gsub("<","&lt;")
    text = text:gsub("\"", "&quot;")
@@ -111,6 +117,7 @@ end
 -- @param tokens         a table of {token, status} pairs.
 -- @return               an HTML string.
 -----------------------------------------------------------------------------
+local
 function format_as_html(tokens)
    local diff_buffer = ""
    local token, status
@@ -138,6 +145,7 @@ end
 --                       white space).
 -- @return               A list of annotated tokens.
 -----------------------------------------------------------------------------
+local
 function diff(old, new, separator)
    assert(old); assert(new)
    new = split(new, separator); old = split(old, separator)
@@ -158,6 +166,8 @@ function diff(old, new, separator)
       table.remove(new)
       suffix = token..suffix
    end
+
+   local IN, OUT, SAME = _M.IN, _M.OUT, _M.SAME
 
    -- Setup a table that will store the diff (an upvalue for get_diff). We'll
    -- store it in the reverse order to allow for tail calls.  We'll also keep
@@ -211,4 +221,10 @@ function diff(old, new, separator)
 end
 
 
+_M.split = split
+_M.quick_LCS = quick_LCS
+_M.escape_html = escape_html
+_M.format_as_html = format_as_html
+_M.diff = diff
 
+return _M
